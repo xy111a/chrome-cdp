@@ -113,14 +113,14 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub \
 RUN apt-get update && apt-get install -y --no-install-recommends \
         nodejs \
         npm \
-    && npm install -g @jackwener/opencli@1.8.7 \
+    && npm install -g @jackwener/opencli@2.0.2 \
     && npm cache clean --force \
     && rm -rf /var/lib/apt/lists/*
 
 # ============================================
 # 5. 应用配置 + 钉版本拉取 Browser Bridge
 #    - Bridge 作为 GitHub Releases 资产单独发布，与 opencli 同批，
-#      钉到与 opencli 一致的 v1.8.7（= extension 1.0.23），
+#      钉到与 opencli 一致的 v2.0.2（= extension 1.0.23），
 #      保证二者版本同步且构建可复现（不再随 latest 漂移）
 #    - 仓库内 extensions/opencli/ 仅作离线兜底（下载失败时使用）
 # ============================================
@@ -129,7 +129,7 @@ COPY entrypoint.sh /app/entrypoint.sh
 COPY config/ /app/config/
 COPY extensions/ /app/extensions/
 RUN chmod +x /app/entrypoint.sh \
-    && BRIDGE_JSON=$(curl -fsSL https://api.github.com/repos/jackwener/OpenCLI/releases/tags/v1.8.7 2>/dev/null || true) \
+    && BRIDGE_JSON=$(curl -fsSL https://api.github.com/repos/jackwener/OpenCLI/releases/tags/v2.0.2 2>/dev/null || true) \
     && BRIDGE_URL=$(printf '%s' "$BRIDGE_JSON" | grep -oE 'https://[^"]*opencli-extension[^"]*\.zip' | head -1) \
     && if [ -n "$BRIDGE_URL" ]; then \
          echo ">> 拉取最新 Browser Bridge: $BRIDGE_URL" \
@@ -164,3 +164,4 @@ VOLUME ["/profiles"]
 # 9. 启动
 # ============================================
 ENTRYPOINT ["/app/entrypoint.sh"]
+
