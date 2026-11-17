@@ -19,8 +19,13 @@ ARG OPENCLI_VERSION=2.0.3
 RUN npm install -g @jackwener/opencli@${OPENCLI_VERSION}
 
 # opencli-mcp 的 Python 依赖（钉版本）
+#
+# 装到 /app/pylib 而不是系统 site-packages：基座镜像本来就把依赖 vendored 在 /app/pylib，
+# 并通过 PYTHONPATH 暴露。往系统装会让 pip 认为那些「装过但缺 RECORD」的包需要卸载，
+# 直接失败（uninstall-no-record-file）。--target 只写文件，不触发卸载。
 COPY requirements.txt /tmp/mcp-requirements.txt
-RUN pip install --no-cache-dir --break-system-packages -r /tmp/mcp-requirements.txt \
+RUN pip install --no-cache-dir --break-system-packages --upgrade \
+        --target /app/pylib -r /tmp/mcp-requirements.txt \
     && rm -f /tmp/mcp-requirements.txt
 
 # MCP 服务本体 + 运行时脚本
