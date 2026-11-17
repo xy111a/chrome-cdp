@@ -1,59 +1,65 @@
-name: Docker Build & Publish
+name: docker
 
+# 只在 main 的代码变更上构建：文档改动不跑，tag 也不单独跑（本项目不靠版本 tag 发版）。
 on:
   push:
-    branches:
-      - main
-    tags:
-      - "v*"
-  pull_request:
-    branches:
-      - main
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - '.dockerignore'
+
+# 同一分支连推时取消上一次，避免排队跑过期提交
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: xy111a/chrome-cdp
+  IMAGE: ${{ github.repository }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Login to GitHub Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
+      # 1) 基座镜像：Chrome + CDP + noVNC + opencli CLI
+      - uses: docker/build-push-action@v5
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE }}:sha-${{ github.sha }}
+          cache-from: type=gha,scope=base
+          cache-to: type=gha,mode=max,scope=base
+
+      # 2) MCP 层：在本次刚构建的基座之上加 opencli-mcp（4 个 MCP 工具）
+      #    用 sha tag 作 base，保证两层严格对应同一次运行
+      - uses: docker/build-push-action@v5
+        with:
+          context: mcp
+          platforms: linux/amd64
+          push: true
+          build-args: |
+            BASE_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE }}:sha-${{ github.sha }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE }}:mcp
+            ${{ env.REGISTRY }}/${{ env.IMAGE }}:mcp-sha-${{ github.sha }}
+          cache-from: type=gha,scope=mcp
+          cache-to: type=gha,scope=mcp,mode=max
