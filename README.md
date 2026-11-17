@@ -26,6 +26,26 @@
 └─────────────────────────────────────────┘
 ```
 
+### 可选：加一层 opencli-mcp
+
+基座镜像只提供 CLI。要让 **agent 直接驱动**这台已登录的 Chrome，可以在它之上再烘一层
+[`mcp/`](mcp/README.md)：把 opencli 的上千条命令收敛成 4 个 MCP 工具（`guide` / `list` / `help` / `run`），
+常驻工具开销约 700 token 而不是 11 万。
+
+```
+┌─────────────────────────────────────────┐
+│  chrome-opencli (mcp/Dockerfile)        │
+│    FROM ghcr.io/xy111a/chrome-opencli   │
+│                                         │
+│  opencli 2.0.3（钉版本）                │
+│  opencli-mcp  :8090/mcp                 │  ← agent 的 MCP 客户端
+│  /health（免鉴权）                      │
+└─────────────────────────────────────────┘
+```
+
+构建与配置见 [`mcp/README.md`](mcp/README.md)；鉴权用 `OPENCLI_MCP_TOKEN`（Bearer），
+`OPENCLI_MCP_SERIALIZE=1` 必须保持串行，避免两个命令抢同一个 Chrome 标签页。
+
 ## 🚀 快速开始
 
 ### 1. 用 Docker Hub 镜像（推荐）
