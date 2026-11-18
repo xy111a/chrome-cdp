@@ -54,10 +54,13 @@ PYTHONPATH=/app/pylib OPENCLI_MCP_PORT=8090 OPENCLI_MCP_TOKEN="$TOKEN" python3 /
 
 | 环境变量 | 说明 |
 |---|---|
+| `HOME` | opencli 用户目录（`$HOME/.opencli`）；必须与 `docker exec` 一致，本镜像默认 `/profiles` |
 | `OPENCLI_MCP_PORT` | 监听端口，默认 8090 |
 | `OPENCLI_MCP_TOKEN` | Bearer token；**留空则不鉴权**。`/health` 始终免鉴权 |
 | `OPENCLI_MCP_AUDIT` | 审计日志路径（每次工具调用的工具名、参数摘要） |
 | `OPENCLI_MCP_SERIALIZE` | 保持 `1`：串行执行，避免并发抢同一个 Chrome 标签页 |
+
+> **HOME 必须一致**：MCP 进程和 `docker exec` 里的 opencli 都按 `$HOME/.opencli` 找适配器。如果 MCP 是 `/profiles/.opencli`、CLI 是 `/root/.opencli`，会出现 `opencli list` 能看到命令、但 MCP `opencli_run` 报 `Unknown command`。镜像层已设 `HOME=/profiles`，Compose 里再显式写一次更稳。
 
 客户端配置（Hermes / Claude Desktop 等）：
 

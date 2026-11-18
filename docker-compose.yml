@@ -40,6 +40,7 @@ services:
     shm_size: 2g
     
     # 数据持久化（cookie, history, bookmarks）
+    # opencli 的用户目录也在 /profiles/.opencli，跟着这个卷一起持久化
     volumes:
       - chrome-profiles:/profiles
     
@@ -47,6 +48,7 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - PROFILES_DIR=/profiles
+      - HOME=/profiles
       - WINDOW_SIZE=1280,720
     
     # 资源限制（生产环境建议加上）

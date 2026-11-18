@@ -30,7 +30,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANGUAGE=en_US:en \
     LC_ALL=en_US.UTF-8 \
     DISPLAY=:99 \
-    CHROME_VERSION=stable
+    CHROME_VERSION=stable \
+    PROFILES_DIR=/profiles \
+    HOME=/profiles
 
 # ============================================
 # 1. 基础系统工具

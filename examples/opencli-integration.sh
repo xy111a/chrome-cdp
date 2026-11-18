@@ -5,6 +5,7 @@
 # 
 # opencli 装在 chrome-cdp 容器内，封装了 CDP 调用，
 # 让 CLI 直接抓取网站数据，无需写代码。
+# 本镜像 HOME=/profiles，opencli 用户目录是 /profiles/.opencli。
 # =============================================================
 
 CHROME_CONTAINER="chrome-cdp"

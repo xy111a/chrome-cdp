@@ -113,6 +113,9 @@ docker exec -it chrome-cdp opencli github trending -f json
 opencli --cdp-url http://localhost:9222 zhihu hot -f table
 ```
 
+> opencli 的用户目录是 `$HOME/.opencli`；本镜像固定 `HOME=/profiles`，所以自定义适配器、cache、`auth-refresh.json` 都在 `/profiles/.opencli`，和 Chrome 的 Cookie 一起持久化。
+> 如果你改了 `PROFILES_DIR`，必须把 `HOME` 设成同一个路径；否则 `docker exec` 和 MCP 会各自看到一套适配器。
+
 #### 原始 CDP WebSocket
 
 ```python
@@ -145,6 +148,7 @@ print(ws.recv())
 | 变量 | 默认 | 说明 |
 |---|---|---|
 | `PROFILES_DIR` | `/profiles` | Chrome profile 目录（cookie、历史记录） |
+| `HOME` | `/profiles` | opencli 用户目录（`$HOME/.opencli`）；必须与 `PROFILES_DIR` 一致，`docker exec` 也依赖它 |
 | `WINDOW_SIZE` | `1280,720` | 虚拟显示尺寸（宽,高） |
 | `CHROME_FLAGS` | 空 | 额外 Chrome 启动参数 |
 | `TZ` | `Asia/Shanghai` | 时区 |

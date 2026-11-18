@@ -70,6 +70,7 @@ sleep 1
 echo "[3/4] 启动 Chrome（X11 模式）..."
 
 export DISPLAY=:99
+# 仅影响 entrypoint 启动的子进程；docker exec 不继承这里，镜像 ENV 也设了 HOME
 export HOME="$PROFILES_DIR"
 
 CHROME_CMD="google-chrome \

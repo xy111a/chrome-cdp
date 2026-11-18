@@ -14,6 +14,11 @@
 ARG BASE_IMAGE=ghcr.io/xy111a/chrome-opencli:1.3.0
 FROM ${BASE_IMAGE}
 
+# 与基座镜像保持一致：opencli 用户目录是 $HOME/.opencli。
+# Docker exec 不会继承 entrypoint 里的 export HOME，必须在镜像层显式设置。
+ENV PROFILES_DIR=/profiles \
+    HOME=/profiles
+
 # 基座镜像自带 opencli 2.0.2，这里升级到钉住的版本，避免构建时漂移
 ARG OPENCLI_VERSION=2.0.3
 RUN npm install -g @jackwener/opencli@${OPENCLI_VERSION}

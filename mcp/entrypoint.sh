@@ -98,6 +98,8 @@ fi
 echo "[3/4] 启动 Chrome（X11 模式）..."
 # ============================================
 # 3.5 启动 opencli bridge daemon（让扩展在 Chrome 启动时即连上，避免默认 disconnected）
+# 注意：daemon 在下面 export HOME 之前启动；它依赖镜像 ENV / Compose 的 HOME，
+# 不能只靠 entrypoint 里的 export，否则 daemon 会用 /root/.opencli。
 # ============================================
 echo "[3.5/4] 启动 opencli bridge daemon..."
 opencli daemon restart > /var/log/opencli-daemon.log 2>&1 &
@@ -108,6 +110,7 @@ sleep 2
 
 
 export DISPLAY=:99
+# 仅影响 entrypoint 启动的子进程；docker exec 不继承这里，镜像 ENV 也设了 HOME
 export HOME="$PROFILES_DIR"
 
 CHROME_CMD="google-chrome \

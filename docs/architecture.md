@@ -28,9 +28,21 @@
 │                                                              │
 │  ┌──────────────┐                                            │
 │  │  opencli     │ ← CLI 工具 (CDP 封装)                     │
+│  │ /profiles/.opencli ← 适配器/cache/auth-refresh          │
 │  └──────────────┘                                            │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+## opencli 用户目录
+
+`opencli` 用 `$HOME/.opencli` 存适配器、cache 和 `auth-refresh.json`。本镜像固定：
+
+```text
+HOME=/profiles
+→ /profiles/.opencli
+```
+
+`entrypoint.sh` 里的 `export HOME="$PROFILES_DIR"` 只影响它启动的子进程；`docker exec` 不会继承，所以镜像层和 Compose 也必须显式设置 `HOME=/profiles`。否则会出现 CLI 在 `/root/.opencli` 装适配器、MCP 在 `/profiles/.opencli` 找不到的分叉。
 
 ## 启动顺序
 
